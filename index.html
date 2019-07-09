@@ -17,7 +17,13 @@
     <script src="videojs-flvjs.min.js"></script>
     <script src="videojs-http-streaming.min.js"></script>
     <script>
-      var player = videojs("example-video");
+      var player = videojs("example-video", {
+        flvjs: {
+          mediaDataSource: {
+            isLive: false
+          }
+        }
+      });
       var params = location.search
         .split("?")
         .join(";")
