@@ -3,6 +3,47 @@
     <title>Livestream</title>
     <link href="//vjs.zencdn.net/7.3.0/video-js.min.css" rel="stylesheet" />
     <script src="//vjs.zencdn.net/7.3.0/video.min.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+
+      label {
+        height: 25px;
+        vertical-align: middle;
+        margin-right: 8px;
+        display: inline-block;
+      }
+
+      .slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 25px;
+        background: #d3d3d3;
+        outline: none;
+        margin-right: 8px;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #4caf50;
+        cursor: pointer;
+      }
+
+      .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        background: #4caf50;
+        cursor: pointer;
+      }
+
+      #volumesliders {
+        margin-top: 16px;
+      }
+    </style>
   </head>
   <body>
     <video-js
@@ -13,10 +54,65 @@
       controls
     >
     </video-js>
+
+    <div id="volumesliders">
+      No volume slider data.
+    </div>
+
+    <script src="jquery-3.4.1.min.js"></script>
     <script src="flv.min.js"></script>
     <script src="videojs-flvjs.min.js"></script>
     <script src="videojs-http-streaming.min.js"></script>
     <script>
+      // ICN communication
+      const apiKey = "?apikey=UghThisIsDull";
+      const local = false;
+      const icnUrl = local
+        ? "http://icn.diga.localhost:8000/api"
+        : "https://icn.diga.link/api";
+
+      $.ajax({
+        url: icnUrl + "/audiodevices" + apiKey,
+        method: "GET"
+      }).done(data => {
+        console.log(data);
+        $("#volumesliders").empty();
+        for (let key in data) {
+          $label = $("<label>");
+          $input = $("<input>");
+
+          $label.text(key + ": ");
+          $input.attr("min", 0);
+          $input.attr("max", 100);
+          $input.attr("type", "range");
+          $input.addClass("slider");
+          $input.on("change", function(val) {
+            let value = $(this).val() / 100;
+            $(this).attr("disabled", true);
+            $(this).fadeOut(80);
+
+            let $self = $(this);
+
+            $.ajax({
+              url: icnUrl + "/audiodevices/volume" + apiKey,
+              method: "POST",
+              data: {
+                device: key,
+                volume: value
+              }
+            }).done(function(data) {
+              console.log(data);
+              $self.attr("disabled", false);
+              $self.fadeIn(80);
+            });
+          });
+          $input.val(parseFloat(data[key]) * 100);
+
+          $("#volumesliders").append($label);
+          $("#volumesliders").append($input);
+        }
+      });
+
       var player = videojs("example-video", {
         flvjs: {
           mediaDataSource: {
