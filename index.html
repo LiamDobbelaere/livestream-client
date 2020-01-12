@@ -98,7 +98,7 @@
               method: "POST",
               data: {
                 device: key,
-                volume: value
+                volume: value * value
               }
             }).done(function(data) {
               console.log(data);
@@ -106,7 +106,7 @@
               $self.fadeIn(80);
             });
           });
-          $input.val(parseFloat(data[key]) * 100);
+          $input.val((parseFloat(data[key]) / parseFloat(data[key])) * 100);
 
           $("#volumesliders").append($label);
           $("#volumesliders").append($input);
